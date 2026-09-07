@@ -99,37 +99,6 @@ https://www.bilibili.com/video/BV1xYGgz9ENE
 | **x64**   | https://aka.ms/vs/17/release/vc_redist.x64.exe| 
 | **参考地址**  | https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170| 
 
-<br>
-<br>
-<br>
-
-
-
-# 🐧 QQ交流群
-
-<br>
-
-<div align="center">
-
-<img src="https://free.picui.cn/free/2025/07/04/6867f1907d1a0.png" alt="QQGroup" width="200" height="200">
-
-</div>
-
-
-<br>
-<br>
-<br>
-
-
-# 🚬 请作者抽一包香香软软的利群
-<br>
-
-<div align="center">
-
-<img src="https://free.picui.cn/free/2025/07/04/6867efd0bd67e.png" alt="Ali" width="200" height="200">
-<img src="https://free.picui.cn/free/2025/07/04/6867efd0d7cbb.png" alt="Wx" width="200" height="200">
-
-</div>
 
 
 
