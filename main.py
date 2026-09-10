@@ -472,9 +472,15 @@ async def single_rotate(data: ModelImageIn, current_user: User = Depends(check_b
     return {"result": result}
 
 
-@app.post("/api/rotate/double/rotate", summary="双图旋转验证码", tags=["旋转验证码，OpenCV算法"])
+@app.post("/api/rotate/double/rotate", summary="双图旋转验证码", tags=["旋转验证码,模型识别"])
 async def double_rotate(data: DoubleRotateIn, current_user: User = Depends(check_balance_and_deduct)):
     result = await run_in_threadpool(Atc.Double_Rotate, inside_base64=data.inside_base64, outside_base64=data.outside_base64)
+    return {"result": result}
+
+
+@app.post("/api/geetest/slide", summary="极验滑块验证码,返回缺口坐标", tags=["极验验证码,YOLO模型识别"])
+async def geetest_slide(data: ModelImageIn, current_user: User = Depends(check_balance_and_deduct)):
+    result = await run_in_threadpool(Atc.Geetest_SlideCAPTCHA, img_base64=data.img_base64)
     return {"result": result}
 
 
