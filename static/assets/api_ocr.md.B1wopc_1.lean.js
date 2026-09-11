@@ -1,1 +1,0 @@
-import{_ as a,o as i,c as t,a5 as e}from"./chunks/framework.C1SWwwi8.js";const c=JSON.parse('{"title":"OCR 识别","description":"","frontmatter":{},"headers":[],"relativePath":"api/ocr.md","filePath":"api/ocr.md"}'),n={name:"api/ocr.md"};function h(l,s,p,d,r,o){return i(),t("div",null,[...s[0]||(s[0]=[e("",17)])])}const g=a(n,[["render",h]]);export{c as __pageData,g as default};

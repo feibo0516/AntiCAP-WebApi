@@ -1,1 +1,0 @@
-import{_ as s,o as t,c as i,a5 as e}from"./chunks/framework.C1SWwwi8.js";const c=JSON.parse('{"title":"计算识别","description":"","frontmatter":{},"headers":[],"relativePath":"api/math.md","filePath":"api/math.md"}'),h={name:"api/math.md"};function n(l,a,d,p,r,o){return t(),i("div",null,[...a[0]||(a[0]=[e("",15)])])}const g=s(h,[["render",n]]);export{c as __pageData,g as default};
