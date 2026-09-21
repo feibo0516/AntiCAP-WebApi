@@ -1,4 +1,8 @@
+import base64
+from io import BytesIO
+
 import AntiCAP
+from PIL import Image
 from fastapi import APIRouter, Depends
 from fastapi.concurrency import run_in_threadpool
 
@@ -10,10 +14,26 @@ from app.models.schemas import (
     SliderImageIn,
     CompareImageIn,
     DoubleRotateIn,
+    GeetestIconSimilarityIn,
 )
 
 router = APIRouter(prefix="/api", tags=["验证码识别"])
 Atc = AntiCAP.Handler(show_banner=False)
+
+REGIONS = [
+    (376, 24, 412, 60),
+    (412, 24, 448, 60),
+    (448, 24, 484, 60),
+]
+
+
+def _crop_base64(img_base64: str, box: tuple) -> str:
+    img_data = base64.b64decode(img_base64)
+    img = Image.open(BytesIO(img_data))
+    cropped = img.crop(box)
+    buffer = BytesIO()
+    cropped.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 
 @router.post("/ocr", summary="返回字符串", tags=["OCR识别"])
@@ -110,3 +130,63 @@ async def double_rotate(data: DoubleRotateIn, current_user: User = Depends(check
 async def geetest_slide(data: ModelImageIn, current_user: User = Depends(check_balance_and_deduct)):
     result = await run_in_threadpool(Atc.Geetest_SlideCAPTCHA, img_base64=data.img_base64)
     return {"result": result}
+
+
+@router.post("/geetest/icon/click/icon", summary="极验图标点选-图标识别,返回图标列表", tags=["极验验证码,YOLO模型识别"])
+async def geetest_icon_click_icon(data: ModelImageIn, current_user: User = Depends(check_balance_and_deduct)):
+    result = await run_in_threadpool(Atc.Geetest_IconClick_Icon, img_base64=data.img_base64)
+    return {"result": result}
+
+
+@router.post("/geetest/icon/click/check", summary="极验图标点选-图标检查,返回坐标", tags=["极验验证码,YOLO模型识别"])
+async def geetest_icon_click_check(data: ModelImageIn, current_user: User = Depends(check_balance_and_deduct)):
+    # 按固定坐标裁剪出 3 张参考图片
+    reference_imgs = [_crop_base64(data.img_base64, region) for region in REGIONS]
+
+    # YOLO 模型检测图中所有图标，按检测坐标裁剪出对比图片
+    detected_icons = await run_in_threadpool(Atc.Geetest_IconClick_Icon, img_base64=data.img_base64)
+    compare_imgs = [_crop_base64(data.img_base64, tuple(icon["box"])) for icon in detected_icons]
+
+    # 逐对计算相似度矩阵 scores[ref][cmp]
+    num_refs = len(reference_imgs)
+    scores = []
+    for ref_img in reference_imgs:
+        row = []
+        for cmp_img in compare_imgs:
+            sim_result = await run_in_threadpool(
+                Atc.Geetest_IconClick_Similarity,
+                img1_base64=ref_img,
+                img2_base64=cmp_img,
+            )
+            row.append(sim_result["similarity"])
+        scores.append(row)
+
+    # 顺序贪心匹配：ref₀ 先选最优 → ref₁ 在剩余中选最优 → ref₂ 在剩余中选最优
+    num_cmps = len(compare_imgs)
+    results = [None] * num_refs
+    used_cmp = set()
+    for ri in range(num_refs):
+        best_ci = None
+        best_sim = -1
+        for ci in range(num_cmps):
+            if ci in used_cmp:
+                continue
+            if scores[ri][ci] > best_sim:
+                best_sim = scores[ri][ci]
+                best_ci = ci
+        results[ri] = detected_icons[best_ci]["box"]
+        used_cmp.add(best_ci)
+
+    return {"result": results, "detected_icons": detected_icons}
+
+@router.post("/geetest/icon/click/similarity", summary="极验图标点选-图标相似度", tags=["极验验证码,YOLO模型识别"])
+async def geetest_icon_click_similarity(data: GeetestIconSimilarityIn, current_user: User = Depends(check_balance_and_deduct)):
+    results = []
+    for compare_img in data.compare_imgs:
+        sim = await run_in_threadpool(
+            Atc.Geetest_IconClick_Similarity,
+            img1_base64=data.reference_img,
+            img2_base64=compare_img,
+        )
+        results.append(sim)
+    return {"result": results}

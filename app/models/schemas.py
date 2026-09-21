@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class ModelImageIn(BaseModel):
@@ -69,3 +69,15 @@ class RegCodeResponse(BaseModel):
     points: int
 
     model_config = {"from_attributes": True}
+
+
+class GeetestIconSimilarityIn(BaseModel):
+    reference_img: str
+    compare_imgs: list[str]
+
+    @field_validator("compare_imgs")
+    @classmethod
+    def validate_compare_count(cls, v):
+        if len(v) < 1 or len(v) > 4:
+            raise ValueError("compare_imgs 必须包含 1 到 4 张图片")
+        return v
